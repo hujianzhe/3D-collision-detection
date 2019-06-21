@@ -6,11 +6,18 @@ var CCT = {
 	COLLISION_BODY_PLANE : 4,
 	COLLISION_BODY_TRIANGLES_PLANE : 5,
 	
+	EPSILON : 1E-5,
+	Vector3 : function(x, y, z) {
+		this.x = x || 0;
+		this.y = y || 0;
+		this.z = z || 0;
+	},
+	
 	Ray : function (pos) {
 		var o = {};
 		o.type = CCT.COLLISION_BODY_RAY;
 		if (pos)
-			o.pos = pos.clone();
+			o.pos = new CCT.Vector3(pos.x, pos.y, pos.z);
 		return o;
 	},
 	
@@ -18,9 +25,9 @@ var CCT = {
 		var o = {};
 		o.type = CCT.COLLISION_BODY_AABB;
 		if (pos)
-			o.pos = pos.clone();
+			o.pos = new CCT.Vector3(pos.x, pos.y, pos.z);
 		if (half)
-			o.half = half.clone();
+			o.half = new CCT.Vector3(half.x, half.y, half.z);
 		return o;
 	},
 	
@@ -28,7 +35,7 @@ var CCT = {
 		var o = {};
 		o.type = CCT.COLLISION_BODY_SPHERE;
 		if (pos)
-			o.pos = pos.clone();
+			o.pos = new CCT.Vector3(pos.x, pos.y, pos.z);
 		o.radius = radius;
 		return o;
 	},
@@ -37,8 +44,8 @@ var CCT = {
 		var o = {};
 		o.type= CCT.COLLISION_BODY_CAPSULE;
 		if (pos)
-			o.pos = pos.clone();
-		o.axis = axis.clone();
+			o.pos = new CCT.Vector3(pos.x, pos.y, pos.z);
+		o.axis = new CCT.Vector3(axis.x, axis.y, axis.z);
 		o.radius = radius;
 		o.half_height = half_height;
 		return o;
@@ -47,22 +54,19 @@ var CCT = {
 	Plane : function (vertice, normal) {
 		var o = {};
 		o.type = CCT.COLLISION_BODY_PLANE;
-		o.vertice = vertice.clone();
-		o.normal = normal.clone();
+		o.vertice = new CCT.Vector3(vertice.x, vertice.y, vertice.z);
+		o.normal = new CCT.Vector3(normal.x, normal.y, normal.z);
 		return o;
 	},
 	
 	TrianglesPlane : function (normal, vertices, indices) {
 		var o = {};
 		o.type = CCT.COLLISION_BODY_TRIANGLES_PLANE;
-		o.normal = normal.clone();
+		o.normal = new CCT.Vector3(normal.x, normal.y, normal.z);
 		o.vertices = [].concat(vertices);
 		o.indices = [].concat(indices);
 		return o;
 	},
-	
-	EPSILON : 1E-5,
-	Vector3 : undefined,
 	
 	/**
 	 * collision body1 cast body2
@@ -2048,4 +2052,69 @@ var CCT = {
 			}
 		}
 	}
+};
+
+CCT.Vector3.prototype.clone = function () {
+	return new CCT.Vector3(this.x, this.y, this.z);
+};
+CCT.Vector3.prototype.addScaledVector = function (v, s) {
+	this.x += v.x * s;
+	this.y += v.y * s;
+	this.z += v.z * s;
+	return this;
+};
+CCT.Vector3.prototype.sub = function (v) {
+	this.x -= v.x;
+	this.y -= v.y;
+	this.z -= v.z;
+	return this;
+};
+CCT.Vector3.prototype.subVectors = function (a, b) {
+	this.x = a.x - b.x;
+	this.y = a.y - b.y;
+	this.z = a.z - b.z;
+	return this;
+};
+CCT.Vector3.prototype.negate = function () {
+	this.x = -this.x;
+	this.y = -this.y;
+	this.z = -this.z;
+	return this;
+};
+CCT.Vector3.prototype.dot = function (v) {
+	return this.x * v.x + this.y * v.y + this.z * v.z;
+};
+CCT.Vector3.prototype.lengthSq = function () {
+	return this.x * this.x + this.y * this.y + this.z * this.z;
+};
+CCT.Vector3.prototype.length = function () {
+	return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+};
+CCT.Vector3.prototype.multiplyScalar = function (scalar) {
+	this.x *= scalar;
+	this.y *= scalar;
+	this.z *= scalar;
+	return this;
+};
+CCT.Vector3.prototype.divideScalar = function (scalar) {
+	return this.multiplyScalar(1 / scalar);
+};
+CCT.Vector3.prototype.normalize = function () {
+	return this.divideScalar(this.length() || 1);
+};
+CCT.Vector3.prototype.crossVectors = function (a, b) {
+	var ax = a.x, ay = a.y, az = a.z;
+	var bx = b.x, by = b.y, bz = b.z;
+	this.x = ay * bz - az * by;
+	this.y = az * bx - ax * bz;
+	this.z = ax * by - ay * bx;
+	return this;
+};
+CCT.Vector3.prototype.fromArray = function (array, offset) {
+	if (offset === undefined)
+		offset = 0;
+	this.x = array[offset];
+	this.y = array[offset + 1];
+	this.z = array[offset + 2];
+	return this;
 };
