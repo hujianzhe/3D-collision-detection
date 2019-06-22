@@ -80,12 +80,16 @@ var CCT = {
 			return null;
 		else if (CCT.COLLISION_BODY_RAY === one.type) {
 			switch (two.type) {
+				case CCT.COLLISION_BODY_AABB:
+					return CCT.mathRaycastAABB(one.pos, dir, two.pos, two.half);
 				case CCT.COLLISION_BODY_SPHERE:
 					return CCT.mathRaycastSphere(one.pos, dir, two.pos, two.radius);
 				case CCT.COLLISION_BODY_CAPSULE:
 					return CCT.mathRaycastCapsule(one.pos, dir, two.pos, two.axis, two.radius, two.half_height);
 				case CCT.COLLISION_BODY_PLANE:
 					return CCT.mathRaycastPlane(one.pos, dir, two.vertice, two.normal);
+				case CCT.COLLISION_BODY_TRIANGLES_PLANE:
+					return CCT.mathRaycastTrianglesPlane(one.pos, dir, two.normal, two.vertices, two.indices);
 				default:
 					return null;
 			}
@@ -1070,6 +1074,63 @@ var CCT = {
 			}
 		}
 		return null;
+	},
+	/**
+	 * ray cast to triangles plane
+	 * @param o
+	 * @param dir
+	 * @param plane_n
+	 * @param vertices
+	 * @param indices
+	 * @returns {*}
+	 */
+	mathRaycastTrianglesPlane : function (o, dir, plane_n, vertices, indices) {
+		var result = CCT.mathRaycastPlane(o, dir, vertices[indices[0]], plane_n);
+		if (result) {
+			var i = 0;
+			while (i < indices.length) {
+				var tri = [
+					vertices[indices[i++]],
+					vertices[indices[i++]],
+					vertices[indices[i++]]
+				];
+				if (CCT.mathTriangleHasPoint(tri, result.hit_point))
+					return result;
+			}
+		}
+		return null;
+	},
+	/**
+	 * ray cast to triangles plane
+	 * @param o
+	 * @param dir
+	 * @param aabb_o
+	 * @param aabb_half
+	 * @returns {*}
+	 */
+	mathRaycastAABB : function (o, dir, aabb_o, aabb_half) {
+		if (CCT.mathAABBHasPoint(aabb_o, aabb_half, o)) {
+			return {
+				distance : 0.0,
+				hit_point : o.clone()
+			};
+		}
+		else {
+			var result = null;
+			var v = CCT.AABBVertices(aabb_o, aabb_half);
+			for (var i = 0, j = 0; i < CCT.Box_Triangle_Vertices_Indices.length; i += 6, ++j) {
+				var plane_n = new CCT.Vector3().fromArray(CCT.AABB_Plane_Normal[j]);
+				var result_temp = CCT.mathRaycastTrianglesPlane(o, dir,
+					plane_n, v, CCT.Box_Triangle_Vertices_Indices.slice(i, i + 6));
+				if (!result_temp)
+					continue;
+				if (!result || result.distance > result_temp.distance)
+				{
+					result = result_temp;
+				}
+			}
+			return result;
+		}
 	},
 	/**
 	 * ray cast to sphere
