@@ -838,7 +838,10 @@ var CCT = {
 			var center;
 			if (CCT.fcmpf(cos_theta, 0.0, CCT.EPSILON)) {
 				var pj = CCT.mathPointProjectionPlane(cp_o, vertices[indices[0]], plane_n);
-				center = cp_o.clone().addScaledVector(cp_axis, pj.d);
+				var d = pj.d / cos_theta;
+				center = cp_o.clone().addScaledVector(cp_axis, d);
+				if (!CCT.mathPlaneHasPoint(vertices[indices[0]], plane_n, center))
+					center = cp_o.clone().addScaledVector(cp_axis, -d);
 			}
 			else {
 				center = CCT.mathPointProjectionPlane(cp_o, vertices[indices[0]], plane_n).p;
