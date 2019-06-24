@@ -906,8 +906,10 @@ var CCT = {
 				var pj = CCT.mathPointProjectionPlane(cp_o, vertices[indices[0]], plane_n);
 				var d = pj.d / cos_theta;
 				center = cp_o.clone().addScaledVector(cp_axis, d);
-				if (!CCT.mathPlaneHasPoint(vertices[indices[0]], plane_n, center))
-					center = cp_o.clone().addScaledVector(cp_axis, -d);
+				if (!CCT.mathCapsuleHasPoint(cp_o, cp_axis, cp_radius, cp_half_height, center)) {
+					center = cp_o.clone().addScaledVector(cp_axis, d >= CCT.EPSILON ? cp_half_height : -cp_half_height);
+					return CCT.mathSphereIntersectTrianglesPlane(center, cp_radius, plane_n, vertices, indices);
+				}
 			}
 			else {
 				center = CCT.mathPointProjectionPlane(cp_o, vertices[indices[0]], plane_n).p;
