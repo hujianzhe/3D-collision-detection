@@ -67,13 +67,79 @@ var CCT = {
 		o.indices = [].concat(indices);
 		return o;
 	},
+
+	/**
+	 * collision body1 intersect body2
+	 * @param one
+	 * @param two
+	 * @returns boolean
+	 */
+	intersect : function (one, two) {
+		if (one === two)
+			return false;
+		else if (CCT.COLLISION_BODY_AABB === one.type) {
+			switch (two.type) {
+				case CCT.COLLISION_BODY_AABB:
+					return CCT.mathAABBIntersectAABB(one.pos, one.half, two.pos, two.half);
+				case CCT.COLLISION_BODY_SPHERE:
+					return CCT.mathAABBIntersectSphere(one.pos, one.half, two.pos, two.radius) !== null;
+				case CCT.COLLISION_BODY_CAPSULE:
+					return CCT.mathAABBIntersectCapsule(one.pos, one.half, two.pos, two.axis, two.radius, two.half_height) !== null;
+				case CCT.COLLISION_BODY_PLANE:
+					return CCT.mathAABBIntersectPlane(one.pos, one.half, two.vertice, two.normal) !== null;
+				default:
+					return false;
+			}
+		}
+		else if (CCT.COLLISION_BODY_SPHERE === one.type) {
+			switch (two.type) {
+				case CCT.COLLISION_BODY_AABB:
+					return CCT.mathAABBIntersectSphere(two.pos, two.half, one.pos, one.radius) !== null;
+				case CCT.COLLISION_BODY_SPHERE:
+					return CCT.mathSphereIntersectSphere(one.pos, one.radius, two.pos, two.radius) !== null;
+				case CCT.COLLISION_BODY_CAPSULE:
+					return CCT.mathSphereIntersectCapsule(one.pos, one.radius, two.pos, two.axis, two.radius, two.half_height) !== null;
+				case CCT.COLLISION_BODY_PLANE:
+					return CCT.mathSphereIntersectPlane(one.pos, one.radius, two.vertice, two.normal) !== null;
+				default:
+					return false;
+			}
+		}
+		else if (CCT.COLLISION_BODY_CAPSULE === one.type) {
+			switch (two.type) {
+				case CCT.COLLISION_BODY_AABB:
+					return CCT.mathAABBIntersectCapsule(two.pos, two.half, one.pos, one.axis, one.radius, one.half_height) !== null;
+				case CCT.COLLISION_BODY_SPHERE:
+					return CCT.mathSphereIntersectCapsule(two.pos, two.radius, one.pos, one,axis, one.radius, one.half_height) !== null;
+				case CCT.COLLISION_BODY_CAPSULE:
+					return CCT.mathCapsuleIntersectCapsule(one.pos, one.axis, one.radius, one.half_height, two.pos, two.axis, two.radius, two.half_height) !== null;
+				case CCT.COLLISION_BODY_PLANE:
+					return CCT.mathCapsuleIntersectPlane(one.pos, one.axis, one.radius, one.half_height, two.vertice, two.normal) !== null;
+				default:
+					return false;
+			}
+		}
+		else if (CCT.COLLISION_BODY_PLANE === one.type) {
+			switch (two.type) {
+				case CCT.COLLISION_BODY_AABB:
+					return CCT.mathAABBIntersectPlane(two.pos, two.half, one.vertice, one.normal) !== null;
+				case CCT.COLLISION_BODY_SPHERE:
+					return CCT.mathSphereIntersectPlane(two.pos, two.radius, one.vertice, one.normal) !== null;
+				case CCT.COLLISION_BODY_CAPSULE:
+					return CCT.mathCapsuleIntersectPlane(two.pos, two.axis, two.radius, two.half_height, one.vertice, one.normal) !== null;
+				default:
+					return false;
+			}
+		}
+		return false;
+	},
 	
 	/**
 	 * collision body1 cast body2
 	 * @param one
 	 * @param dir
 	 * @param two
-	 * @returns {object}
+	 * @returns {distance, hit_point, hit_normal}
 	 */
 	 cast : function(one, dir, two) {
 		if (one === two || CCT.mathVec3IsZero(dir))
