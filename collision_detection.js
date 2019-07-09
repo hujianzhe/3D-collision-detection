@@ -1069,9 +1069,9 @@ var CCT = {
 				CCT.fcmpf(d[0], 0.0, CCT.EPSILON),
 				CCT.fcmpf(d[1], 0.0, CCT.EPSILON)
 			];
-			if (cmp[0] < 0 && cmp[0] < 0)
+			if (cmp[0] < 0 && cmp[1] < 0)
 				return null;
-			if (cmp[0] > 0 && cmp[0] > 0) {
+			if (cmp[0] > 0 && cmp[1] > 0) {
 				if (d[0] < d[1]) {
 					result.distance = d[0];
 					result.hit_point = ls[0].clone();
